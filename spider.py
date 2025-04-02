@@ -43,9 +43,41 @@ def singleMovie(cnt:int) -> dict:
     #result for the final dictionary
     res = {}
 
-    # Entering detail page
-    newUrl = movieEnters[cnt].xpath('./div/div[1]/a/text()')
-    print(newUrl)
+    #Getting detail page.
+    detailPageUrl = movieEnters[cnt].xpath('./div/div[1]/a/@href')[0]
+    detailPageResponse = requests.get(url=detailPageUrl, headers=headers)
+    detailPageResponse.encoding = 'utf-8'
+    detailPageText = detailPageResponse.text
+    detailPageHtml = etree.HTML(detailPageResponse.text)
+
+    #Spidering information. Including a lot of information
+    def getInfo(path:str) -> str:
+        """
+        Short for tree search.
+        """
+        return detailPageHtml.xpath(path)
+
+    no = getInfo('//*[@id="content"]/div[1]/span[1]/text()')[0]
+    title = getInfo('//*[@id="content"]/h1/span[1]/text()')[0]
+    year = getInfo('//*[@id="content"]/h1/span[2]/text()')[0]
+
+    #Next are informations that share common patterns. So I put them together using a shared parent root.
+    infoRoot = detailPageHtml.xpath('//*[@id="info"]')
+    #as long as we're concerned there's only one director.
+    director = getInfo('//*[@id="info"]/span[1]/span[2]/a/text()')[0]
+    #below are many lists.
+    scriptwriter = [i.xpath('./text()')[0] for i in getInfo('//*[@id="info"]/span[2]/span[2]/a')]
+    actors = getInfo('//*[@id="info"]//a[@rel = "v:starring"]/text()')#why is the latter invalid using xpath and list comprehension?
+    genre = detailPageHtml.xpath('//*[@id="info"]/span[@property="v:genre"]/text()')
+    region = re.findall('<span class="pl">制片国家/地区:</span> (.*?)<br/>',detailPageText)[0]
+    language = re.findall('<span class="pl">语言:</span> (.*?)<br/>',detailPageText)[0]
+    date = getInfo('//*[@id="info"]/span[@property="v:initialReleaseDate"]/text()')
+    runtime = getInfo('//*[@id="info"]/span[@property="v:runtime"]/text()')
+    nicknames = re.findall('<span class="pl">又名:</span> (.*?)<br/>',detailPageText)[0]
+    IMDb = re.findall('<span class="pl">IMDb:</span> (.*?)<br>',detailPageText)[0]
+    rating = getInfo('//*[@id="interest_sectl"]/div[1]/div[2]/strong/text()')[0]
+
+
 
 
 

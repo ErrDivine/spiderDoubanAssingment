@@ -1,3 +1,4 @@
+#remind! xpath tells you whats next after the current root.
 #repeat: My task is to spider down 10 movies' information.
 import requests
 import re
@@ -27,7 +28,7 @@ response.encoding = 'utf-8'
 print(response.status_code)
 
 
-#DATA PRCESSING
+#DATA PROCESSING
 
 #initialization
 
@@ -76,6 +77,29 @@ def singleMovie(cnt:int) -> dict:
     nicknames = re.findall('<span class="pl">又名:</span> (.*?)<br/>',detailPageText)[0]
     IMDb = re.findall('<span class="pl">IMDb:</span> (.*?)<br>',detailPageText)[0]
     rating = getInfo('//*[@id="interest_sectl"]/div[1]/div[2]/strong/text()')[0]
+    ratingPeople = getInfo('//*[@id="interest_sectl"]/div[1]/div[2]/div/div[2]/a/span/text()')[0]
+    ratingsOnWeight = getInfo('//*[@id="interest_sectl"]//span[@class="rating_per"]/text()')
+    betterThan = ['好于'+i.xpath('./text()')[0] for i in getInfo('//*[@id="interest_sectl"]/div[@class="rating_betterthan"]/a')]
+    introductionList = getInfo('//*[@id="link-report-intra"]/span[@class="all hidden"]/text()')
+    introduction = ''
+    for paragraph in introductionList:
+        paragraph = paragraph.strip()
+        introduction += paragraph
+
+    #start spidering short comments here. I found this page requires turing pages 'cause we need to scrape 30 pieces but in a single page there is only 20. And before all those we need to first enter the 'all comments' link causes it's another site.
+
+    #initializing all comments page html etree and text
+    allCommentsUrl = getInfo('//*[@id="comments-section"]/div[1]/h2/span/a/@href')[0]
+    allCommentsResponse = requests.get(url=allCommentsUrl, headers=headers)
+    allCommentsResponse.encoding = 'utf-8'
+    allCommentsText = allCommentsResponse.text
+    allCommentsHtml = etree.HTML(allCommentsResponse.text)
+
+    print(len(allCommentsHtml.xpath('//*[@id="comments"]/div[@class="comment-item"]')))
+    def scrapeSingleComment(commnetItemRoot) -> list:
+        return []
+
+    print(allCommentsUrl)
 
 
 

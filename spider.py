@@ -88,6 +88,8 @@ def singleMovie(cnt:int) -> dict:
 
     #start spidering short comments here. I found this page requires turing pages 'cause we need to scrape 30 pieces but in a single page there is only 20. And before all those we need to first enter the 'all comments' link causes it's another site.
 
+    #For the first page:
+
     #initializing all comments page html etree and text
     allCommentsUrl = getInfo('//*[@id="comments-section"]/div[1]/h2/span/a/@href')[0]
     allCommentsResponse = requests.get(url=allCommentsUrl, headers=headers)
@@ -95,11 +97,38 @@ def singleMovie(cnt:int) -> dict:
     allCommentsText = allCommentsResponse.text
     allCommentsHtml = etree.HTML(allCommentsResponse.text)
 
-    print(len(allCommentsHtml.xpath('//*[@id="comments"]/div[@class="comment-item"]')))
-    def scrapeSingleComment(commnetItemRoot) -> list:
-        return []
+    #function for scraping a single comment
+    def scrapeSingleComment(commentItemRoot) -> list:#root is xpathable
+        commentVote = commentItemRoot.xpath('.//span[@class="votes vote-count"]/text()')[0]
+        userName = commentItemRoot.xpath('.//span[@class="comment-info"]/a/text()')[0]
+        userRating = commentItemRoot.xpath('./div[2]/h3/span[2]/span[2]/@title')[0]
+        commentTime = commentItemRoot.xpath('.//span[@class="comment-time"]/text()')[0].strip()
+        commentContent = commentItemRoot.xpath('.//p[@class="comment-content"]/span[1]/text()')[0]
+        return [commentVote, userName, userRating, commentTime, commentContent]
 
-    print(allCommentsUrl)
+    #getting 20 comment roots of the first page
+    #list structure: VOTE,NAME,RATING,TIME,CONTENT  ALL STRING.
+    commentListList = []
+    for root in allCommentsHtml.xpath('//*[@id="comments"]/div[@class="comment-item"]'):
+        commentListList.append(scrapeSingleComment(root))
+
+
+    #Now move on to the next page to scrape the last 10 comments. All I have to do is to change the url.
+    #initializing html and text
+    nextPageUrl = allCommentsUrl[0:-9]+allCommentsHtml.xpath('//*[@id="paginator"]/a[3]/@href')[0]
+    nextPageResponse = requests.get(url=nextPageUrl, headers=headers)
+    nextPageResponse.encoding = 'utf-8'
+    nextPageText = nextPageResponse.text
+    nextPageHtml = etree.HTML(nextPageResponse.text)
+
+    for root in nextPageHtml.xpath('//*[@id="comments"]/div[@class="comment-item"]'):
+        commentListList.append(scrapeSingleComment(root))
+        if len(commentListList) == 30:
+            break
+
+    print(len(commentListList))
+    print(commentListList)
+
 
 
 

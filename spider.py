@@ -1,5 +1,7 @@
 #remind! xpath tells you whats next after the current root.
 #repeat: My task is to spider down 10 movies' information.
+import os
+import json
 import requests
 import re
 from lxml import etree
@@ -167,9 +169,39 @@ for i in range(10):
 
 #DATA SAVING
 #No I think I'll use json to store the data.
-import json
-test = json.dumps(finalResult[0])
+
+#initializing directory
+try:
+    os.chdir('dataJsonDir')
+except FileNotFoundError:
+    os.mkdir('dataJsonDir')
+    os.chdir('dataJsonDir')
 
 
+#writing json data files. each movie has it's own json file. an imperfect detail is that the comments of the movie is stored in a list of python dictionaries, which might cause a little difficulty in file searching and changing but I think the cost of writing a complex mysql is even bigger. I'll try to explain the structure of the comments in the README file.
 
-#initializing
+for i in range(10):
+    with open(f'{i}_movie.json','w') as jsonFile:
+        json.dump(finalResult[i],jsonFile)
+        jsonFile.close()
+        print(f'{i} done')
+
+
+"""All the things about code end here!!!!!
+    Congratulations!!!
+    That is the whole thing for my assignment project!
+    I'm sure to have many unpleasant details throughout the entire code. I can feel that as I learn and practice while coding, my habit evolved.
+    Anyway, imperfections make things more beautiful. They do.
+    
+    Some lyrics to share~ :
+        We're happy, free, confused，
+        And lonely at the same time，
+        It's miserable and magical，
+        Oh yeah，
+        Tonight's the night when，
+        We forget about the deadlines，
+        It's time，
+        It's miserable and magical.
+        
+    CREATING THINGS THAT I LOVE.
+"""

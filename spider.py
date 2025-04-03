@@ -73,7 +73,7 @@ def singleMovie(cnt:int) -> dict:
     region = re.findall('<span class="pl">制片国家/地区:</span> (.*?)<br/>',detailPageText)[0]
     language = re.findall('<span class="pl">语言:</span> (.*?)<br/>',detailPageText)[0]
     date = getInfo('//*[@id="info"]/span[@property="v:initialReleaseDate"]/text()')
-    runtime = getInfo('//*[@id="info"]/span[@property="v:runtime"]/text()')
+    runtime = getInfo('//*[@id="info"]/span[@property="v:runtime"]/text()')[0]
     nicknames = re.findall('<span class="pl">又名:</span> (.*?)<br/>',detailPageText)[0]
     IMDb = re.findall('<span class="pl">IMDb:</span> (.*?)<br>',detailPageText)[0]
     rating = getInfo('//*[@id="interest_sectl"]/div[1]/div[2]/strong/text()')[0]
@@ -89,7 +89,25 @@ def singleMovie(cnt:int) -> dict:
         introduction += paragraph
 
 
-    basicInfo = [no,title,year,director,scriptwriter,genre,region,language,date,runtime,nicknames,IMDb,rating,ratingPeople,ratingsOnWeight,betterThan,introduction]
+    basicInfo = {"no":no,
+                 "title":title,
+                 "year":year,
+                 "director":director,
+                 "scriptwriter" : scriptwriter,
+                 "genre":genre,
+                 "region" : region,
+                 "language" : language,
+                 "date":date,
+                 "runtime":runtime,
+                 "nicknames":nicknames,
+                 "IMDb": IMDb,
+                 "rating":rating,
+                 "ratingPeople":ratingPeople,
+                 "ratingsOnWeight":ratingsOnWeight,
+                 "betterThan":betterThan,
+                 "introduction" : introduction
+                 }
+
     #start spidering short comments here. I found this page requires turing pages 'cause we need to scrape 30 pieces but in a single page there is only 20. And before all those we need to first enter the 'all comments' link causes it's another site.
 
     #For the first page:
@@ -102,19 +120,24 @@ def singleMovie(cnt:int) -> dict:
     allCommentsHtml = etree.HTML(allCommentsResponse.text)
 
     #function for scraping a single comment
-    def scrapeSingleComment(commentItemRoot) -> list:#root is xpathable
+    def scrapeSingleComment(commentItemRoot) -> dict:#root is xpathable
         commentVote = commentItemRoot.xpath('.//span[@class="votes vote-count"]/text()')[0]
         userName = commentItemRoot.xpath('.//span[@class="comment-info"]/a/text()')[0]
         userRating = commentItemRoot.xpath('./div[2]/h3/span[2]/span[2]/@title')[0]
         commentTime = commentItemRoot.xpath('.//span[@class="comment-time"]/text()')[0].strip()
         commentContent = commentItemRoot.xpath('.//p[@class="comment-content"]/span[1]/text()')[0]
-        return [commentVote, userName, userRating, commentTime, commentContent]
+        return {"commentVote":commentVote,
+                "userName":userName,
+                "userRating":userRating,
+                "commentTime":commentTime,
+                "commentContent":commentContent
+                }
 
     #getting 20 comment roots of the first page
     #list structure: VOTE,NAME,RATING,TIME,CONTENT  ALL STRING.
-    commentListList = []
+    commentList = []
     for root in allCommentsHtml.xpath('//*[@id="comments"]/div[@class="comment-item"]'):
-        commentListList.append(scrapeSingleComment(root))
+        commentList.append(scrapeSingleComment(root))
 
 
     #Now move on to the next page to scrape the last 10 comments. All I have to do is to change the url.
@@ -125,14 +148,15 @@ def singleMovie(cnt:int) -> dict:
     nextPageHtml = etree.HTML(nextPageResponse.text)
 
     for root in nextPageHtml.xpath('//*[@id="comments"]/div[@class="comment-item"]'):
-        commentListList.append(scrapeSingleComment(root))
-        if len(commentListList) == 30:
+        commentList.append(scrapeSingleComment(root))
+        if len(commentList) == 30:
             break
 
     #successfully scraping 30 comments and basic information about a single movie. Now return in list and apply the function in a loop.
 
 
-    res = {"basicInfo":basicInfo,"commentListList":commentListList}
+    res = basicInfo
+    res['commentDictionaryList'] = commentList
     return res
 
 
@@ -143,7 +167,9 @@ for i in range(10):
 
 #DATA SAVING
 #No I think I'll use json to store the data.
-import pymysql
+import json
+test = json.dumps(finalResult[0])
+
 
 
 #initializing

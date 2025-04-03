@@ -60,7 +60,7 @@ def singleMovie(cnt:int) -> dict:
 
     no = getInfo('//*[@id="content"]/div[1]/span[1]/text()')[0]
     title = getInfo('//*[@id="content"]/h1/span[1]/text()')[0]
-    year = getInfo('//*[@id="content"]/h1/span[2]/text()')[0]
+    year = getInfo('//*[@id="content"]/h1/span[2]/text()')[0].lstrip('(').rstrip(')')
 
     #Next are informations that share common patterns. So I put them together using a shared parent root.
     infoRoot = detailPageHtml.xpath('//*[@id="info"]')
@@ -80,7 +80,9 @@ def singleMovie(cnt:int) -> dict:
     ratingPeople = getInfo('//*[@id="interest_sectl"]/div[1]/div[2]/div/div[2]/a/span/text()')[0]
     ratingsOnWeight = getInfo('//*[@id="interest_sectl"]//span[@class="rating_per"]/text()')
     betterThan = ['好于'+i.xpath('./text()')[0] for i in getInfo('//*[@id="interest_sectl"]/div[@class="rating_betterthan"]/a')]
-    introductionList = getInfo('//*[@id="link-report-intra"]/span[@class="all hidden"]/text()')
+    introductionList = getInfo('//*[@id="link-report-intra"]//span[@class="all hidden"]/text()')
+    if len(introductionList) == 0:
+        introductionList = getInfo('//*[@id="link-report-intra"]/span[1]/text()')
     introduction = ''
     for paragraph in introductionList:
         paragraph = paragraph.strip()
@@ -140,14 +142,8 @@ for i in range(10):
     print(finalResult[i])
 
 #DATA SAVING
-#considering using mysql to facilitate selection and writing.
+#No I think I'll use json to store the data.
 import pymysql
 
 
 #initializing
-database = pymysql.connect(host='localhost',user='root',password='Sun1590044500',database='DBINFO')
-cursor = database.cursor()
-
-
-cursor.execute('DROP TABLE IF EXISTS MOVIES;')
-cmd = """CREATE TABLE IF NOT EXISTS MOVIES ()"""

@@ -140,3 +140,14 @@ for i in range(10):
     print(finalResult[i])
 
 #DATA SAVING
+#considering using mysql to facilitate selection and writing.
+import pymysql
+
+
+#initializing
+database = pymysql.connect(host='localhost',user='root',password='Sun1590044500',database='DBINFO')
+cursor = database.cursor()
+
+
+cursor.execute('DROP TABLE IF EXISTS MOVIES;')
+cmd = """CREATE TABLE IF NOT EXISTS MOVIES ()"""

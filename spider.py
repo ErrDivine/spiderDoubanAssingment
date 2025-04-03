@@ -86,6 +86,8 @@ def singleMovie(cnt:int) -> dict:
         paragraph = paragraph.strip()
         introduction += paragraph
 
+
+    basicInfo = [no,title,year,director,scriptwriter,genre,region,language,date,runtime,nicknames,IMDb,rating,ratingPeople,ratingsOnWeight,betterThan,introduction]
     #start spidering short comments here. I found this page requires turing pages 'cause we need to scrape 30 pieces but in a single page there is only 20. And before all those we need to first enter the 'all comments' link causes it's another site.
 
     #For the first page:
@@ -118,7 +120,6 @@ def singleMovie(cnt:int) -> dict:
     nextPageUrl = allCommentsUrl[0:-9]+allCommentsHtml.xpath('//*[@id="paginator"]/a[3]/@href')[0]
     nextPageResponse = requests.get(url=nextPageUrl, headers=headers)
     nextPageResponse.encoding = 'utf-8'
-    nextPageText = nextPageResponse.text
     nextPageHtml = etree.HTML(nextPageResponse.text)
 
     for root in nextPageHtml.xpath('//*[@id="comments"]/div[@class="comment-item"]'):
@@ -126,18 +127,16 @@ def singleMovie(cnt:int) -> dict:
         if len(commentListList) == 30:
             break
 
-    print(len(commentListList))
-    print(commentListList)
+    #successfully scraping 30 comments and basic information about a single movie. Now return in list and apply the function in a loop.
 
 
-
-
-
-
-
-
+    res = {"basicInfo":basicInfo,"commentListList":commentListList}
     return res
 
-singleMovie(0)
+
+finalResult = []
+for i in range(10):
+    finalResult.append(singleMovie(i))
+    print(finalResult[i])
 
 #DATA SAVING
